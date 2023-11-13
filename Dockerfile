@@ -1,10 +1,11 @@
 # 42 Devcontainer
 # by HADMARINE
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Set your timezone : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 ENV TIMEZONE=CET
+# If you want to change username, you must change volumes in docker-compose.yml and workspaceFolder in devcontainer.json
 ENV USERNAME=devuser
 
 LABEL maintainer="HADMARINE <contact@hadmarine.com>"
@@ -78,10 +79,6 @@ RUN cd /usr/local/minilibx-linux/ && ./configure \
     && cp -R /usr/local/minilibx-linux/man/* /usr/local/man/ \
     && /sbin/ldconfig
 
-# SSH Keys
-RUN mkdir -p /home/vscode/src
-COPY ./.ssh/ /home/$(USERNAME)/.ssh/
-
 # 42 Norminette
 RUN python3 -m pip install --upgrade pip setuptools && python3 -m pip install norminette
 
@@ -100,7 +97,7 @@ RUN apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin do
 RUN rm /usr/bin/c++ && ln -s /usr/bin/g++ /usr/bin/c++
 
 # Remove installations
-RUN rm -rf /var/lib/{apt,dpkg,cache,log}/
+RUN rm -rf /var/lib/{apt,dpkg,cache,log}
 
 # Add user
 RUN update-locale
@@ -111,6 +108,10 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
 
+# SSH Keys
+RUN mkdir -p /home/${USERNAME}/.ssh && mkdir -p /home/${USERNAME}/src
+COPY ./.ssh/ /home/${USERNAME}/.ssh/
+
 # ZSH configuration
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 RUN git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
@@ -118,6 +119,6 @@ RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting ${ZSH_CUSTOM:
 
 RUN curl -o ~/.zshrc https://gist.githubusercontent.com/HADMARINE/0fb134d56193d1b10be8d985e2e2f9a1/raw/d523a828dfc693ab8258c3f0571ce3c9faa984ea/.zshrc
 
-
+# SSH Keys
 
 CMD [ "zsh" ]
